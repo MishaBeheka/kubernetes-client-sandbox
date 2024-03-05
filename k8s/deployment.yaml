@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sandbox-app
+  name: sandbox-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sandbox-app
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: sandbox-app
+    spec:
+      containers:
+        - image: '{{IMAGE}}'
+          imagePullPolicy: IfNotPresent
+          name: sandbox-app
+          ports:
+            - containerPort: 8080
+              protocol: TCP

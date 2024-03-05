@@ -3,4 +3,15 @@ steps:
     args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/$PROJECT_ID/kubernetes-client-sandbox/sandbox-app:$SHORT_SHA', '.' ]
   - name: 'gcr.io/cloud-builders/docker'
     args: [ 'push', 'europe-west1-docker.pkg.dev/$PROJECT_ID/kubernetes-client-sandbox/sandbox-app:$SHORT_SHA' ]
+  - name: 'ubuntu'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        sed -i 's|{{IMAGE}}|europe-west1-docker.pkg.dev/$PROJECT_ID/kubernetes-client-sandbox/sandbox-app:$SHORT_SHA|g' k8s/deployment.yaml
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: [ 'apply', '-f', 'k8s' ]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=europe-west1-b'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=sandbox-cluster'
 images: [ 'europe-west1-docker.pkg.dev/$PROJECT_ID/kubernetes-client-sandbox/sandbox-app:$SHORT_SHA' ]
