@@ -19,12 +19,9 @@ public class PodManager {
     public List<String> printPods() {
         Config config = new ConfigBuilder().withAutoConfigure().build();
         try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build()) {
-            return client.pods()
-                    .inAnyNamespace()
-                    .list()
-                    .getItems()
+            return client.serviceAccounts().list().getItems()
                     .stream()
-                    .map(pods -> pods.getMetadata().getName())
+                    .map(account -> account.getMetadata().getName())
                     .toList();
         }
     }
