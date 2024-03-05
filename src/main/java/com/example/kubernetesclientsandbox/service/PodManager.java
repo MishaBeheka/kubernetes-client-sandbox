@@ -1,5 +1,7 @@
 package com.example.kubernetesclientsandbox.service;
 
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -17,13 +19,12 @@ public class PodManager {
     public List<String> printPods() {
         Config config = new ConfigBuilder().withAutoConfigure().build();
         try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build()) {
-
             return client.pods()
-                    .inNamespace("default")
+                    .inAnyNamespace()
                     .list()
                     .getItems()
                     .stream()
-                    .map(pod -> pod.getMetadata().getName())
+                    .map(pods -> pods.getMetadata().getName())
                     .toList();
         }
     }
