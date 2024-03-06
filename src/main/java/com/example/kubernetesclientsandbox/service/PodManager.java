@@ -83,6 +83,7 @@ public class PodManager {
                 log.info("Error: {}", error);
             } catch (Exception e) {
                 log.error("Error occurred while executing command in pod", e);
+                throw e;
             }
 
 
