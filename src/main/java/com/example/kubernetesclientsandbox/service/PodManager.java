@@ -50,13 +50,16 @@ public class PodManager {
                     .endContainer()
                     .endSpec()
                     .build();
-            pod = client.pods().inNamespace("default").create(pod);
+
+            log.info("Creating pod: {} ", pod.getMetadata().getName());
+            pod = client.pods().inNamespace("default").resource(pod).create();
 
             CompletableFuture<Pod> podRunningFuture = new CompletableFuture<>();
 
-
-
-            client.pods().inNamespace("default").withName(pod.getMetadata().getName()).watch(new PodWatcher());
+            client.pods()
+                    .inNamespace("default")
+                    .withName(pod.getMetadata().getName())
+                    .watch(new PodWatcher(podRunningFuture));
 
             Pod runningPod = podRunningFuture.get(); // Blocks until the Pod is running
             System.out.println("Pod is running now! Name: " + runningPod.getMetadata().getName());
