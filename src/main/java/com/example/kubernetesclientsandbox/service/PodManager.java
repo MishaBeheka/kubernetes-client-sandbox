@@ -78,6 +78,10 @@ public class PodManager {
                         .writingError(error)
                         .usingListener(new WatchListener())
                         .exec(command);
+
+                var exitCode = execWatch.exitCode().get();
+                log.info("Exit code: {}", exitCode);
+
                 execWatch.close();
                 log.info("Output: {}", output);
                 log.info("Error: {}", error);
