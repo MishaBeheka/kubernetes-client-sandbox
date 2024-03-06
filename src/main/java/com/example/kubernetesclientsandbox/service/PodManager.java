@@ -63,7 +63,7 @@ public class PodManager {
 
             Pod runningPod = podRunningFuture.get(); // Blocks until the Pod is running
             System.out.println("Pod is running now! Name: " + runningPod.getMetadata().getName());
-            return pod.getMetadata().getName() + " " + pod.getStatus().getPhase();
+            return runningPod.getMetadata().getName() + " " + pod.getStatus().getPhase();
         } catch (KubernetesClientException | InterruptedException | ExecutionException e) {
             log.error("Error occurred while creating pod", e);
             return "Error occurred while creating pod";
