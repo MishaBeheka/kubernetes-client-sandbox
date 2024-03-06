@@ -1,5 +1,6 @@
 package com.example.kubernetesclientsandbox.service;
 
+import com.example.kubernetesclientsandbox.dto.PodInfoDto;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
@@ -7,7 +8,11 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.Watcher;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,13 +22,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class PodManager {
 
-    public List<String> printPods() {
+    public List<PodInfoDto> printPods() {
         Config config = new ConfigBuilder().withAutoConfigure().build();
         try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build()) {
             return client.pods().list().getItems()
                     .stream()
-                    .map(Pod::getMetadata)
-                    .map(ObjectMeta::getName)
+                    .map(pod -> new PodInfoDto(pod.getMetadata().getName(), pod.getStatus().getPhase()))
                     .toList();
         }
     }
@@ -47,7 +51,19 @@ public class PodManager {
                     .endSpec()
                     .build();
             pod = client.pods().inNamespace("default").create(pod);
+
+            CompletableFuture<Pod> podRunningFuture = new CompletableFuture<>();
+
+
+
+            client.pods().inNamespace("default").withName(pod.getMetadata().getName()).watch(new PodWatcher());
+
+            Pod runningPod = podRunningFuture.get(); // Blocks until the Pod is running
+            System.out.println("Pod is running now! Name: " + runningPod.getMetadata().getName());
             return pod.getMetadata().getName() + " " + pod.getStatus().getPhase();
+        } catch (KubernetesClientException | InterruptedException | ExecutionException e) {
+            log.error("Error occurred while creating pod", e);
+            return "Error occurred while creating pod";
         }
     }
 }
