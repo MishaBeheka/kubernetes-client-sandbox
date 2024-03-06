@@ -20,4 +20,9 @@ public class PodController {
         return ResponseEntity.ok(podManager.printPods());
     }
 
+    @GetMapping("/create")
+    public ResponseEntity<?> getCreatedPod() {
+        return ResponseEntity.ok(podManager.createPod());
+    }
+
 }

@@ -27,4 +27,17 @@ public class PodManager {
                     .toList();
         }
     }
+
+    public String createPod() {
+        Config config = new ConfigBuilder().withAutoConfigure().build();
+        try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build()) {
+            var pod = client.pods().create(new PodBuilder()
+                    .withNewMetadata()
+                    .withName("test-pod")
+                    .withNamespace("default")
+                    .endMetadata()
+                    .build());
+            return pod.getMetadata().getName();
+        }
+    }
 }
