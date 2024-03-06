@@ -72,7 +72,8 @@ public class PodManager {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             ByteArrayOutputStream error = new ByteArrayOutputStream();
             try {
-                String[] command = {"/bin/sh", "-c", "ls /"};
+                String[] command = {"ls /"};
+//                String[] command = {"/bin/sh", "-c", "ls /"};
                 ExecWatch execWatch = client.pods().inNamespace("default").withName(runningPod.getMetadata().getName())
                         .writingOutput(output)
                         .writingError(error)
@@ -89,13 +90,14 @@ public class PodManager {
 
             return Optional.of(output)
                     .map(ByteArrayOutputStream::toString)
-                    .orElseGet(
-                            () -> Optional.of(error)
-                                    .map(ByteArrayOutputStream::toString)
-                                    .orElse("No output"));
+                    .filter(outputString -> !outputString.isEmpty() && !outputString.isBlank())
+                    .orElseGet(() -> Optional.of(error)
+                            .map(ByteArrayOutputStream::toString)
+                            .filter(outputString -> !outputString.isEmpty() && !outputString.isBlank())
+                            .orElse("No output"));
         } catch (KubernetesClientException | InterruptedException | ExecutionException e) {
-            log.error("Error occurred while creating pod", e);
-            return "Error occurred while creating pod";
+            log.error("Error occurred while processing pod", e);
+            return "Error occurred while processing pod";
         }
     }
 }
