@@ -10,7 +10,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.dsl.ExecListener;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.NoArgsConstructor;
@@ -63,7 +67,31 @@ public class PodManager {
 
             Pod runningPod = podRunningFuture.get(); // Blocks until the Pod is running
             System.out.println("Pod is running now! Name: " + runningPod.getMetadata().getName());
-            return runningPod.getMetadata().getName() + " " + pod.getStatus().getPhase();
+
+            //execute command in pod
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            ByteArrayOutputStream error = new ByteArrayOutputStream();
+            try {
+                String[] command = {"/bin/sh", "-c", "ls -a"};
+                ExecWatch execWatch = client.pods().inNamespace("default").withName(runningPod.getMetadata().getName())
+                        .writingOutput(output)
+                        .writingError(error)
+                        .usingListener(new WatchListener())
+                        .exec(command);
+                execWatch.close();
+                log.info("Output: {}", output);
+                log.info("Error: {}", error);
+            } catch (Exception e) {
+                log.error("Error occurred while executing command in pod", e);
+            }
+
+
+            return Optional.of(output)
+                    .map(ByteArrayOutputStream::toString)
+                    .orElseGet(
+                            () -> Optional.of(error)
+                                    .map(ByteArrayOutputStream::toString)
+                                    .orElse("No output"));
         } catch (KubernetesClientException | InterruptedException | ExecutionException e) {
             log.error("Error occurred while creating pod", e);
             return "Error occurred while creating pod";
