@@ -12,7 +12,6 @@ public class PodWatcher implements Watcher<Pod>{
     private final CompletableFuture<Pod> podRunningFuture;
     @Override
     public void eventReceived(Action action, Pod resource) {
-        CompletableFuture<Pod> podRunningFuture = new CompletableFuture<>();
         if (resource.getStatus().getPhase().equals("Running")) {
             podRunningFuture.complete(resource); // Pod is in Running state, complete the future.
         }
