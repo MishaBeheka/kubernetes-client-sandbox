@@ -31,13 +31,23 @@ public class PodManager {
     public String createPod() {
         Config config = new ConfigBuilder().withAutoConfigure().build();
         try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build()) {
-            var pod = client.pods().create(new PodBuilder()
+
+            Pod pod = new PodBuilder()
                     .withNewMetadata()
                     .withName("test-pod")
-                    .withNamespace("default")
                     .endMetadata()
-                    .build());
-            return pod.getMetadata().getName();
+                    .withNewSpec()
+                    .addNewContainer()
+                    .withName("test-pod-container")
+                    .withImage("europe-west1-docker.pkg.dev/gcp-final-task-project/kubernetes-client-sandbox/sandbox-app:6fe4d86")
+                    .addNewPort()
+                    .withContainerPort(8080)
+                    .endPort()
+                    .endContainer()
+                    .endSpec()
+                    .build();
+            pod = client.pods().inNamespace("default").create(pod);
+            return pod.getMetadata().getName() + " " + pod.getStatus().getPhase();
         }
     }
 }
