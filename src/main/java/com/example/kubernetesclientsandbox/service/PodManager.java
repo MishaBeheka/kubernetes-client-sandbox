@@ -72,8 +72,7 @@ public class PodManager {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             ByteArrayOutputStream error = new ByteArrayOutputStream();
             try {
-                String[] command = {"ls /"};
-//                String[] command = {"/bin/sh", "-c", "ls /"};
+                String[] command = {"/bin/sh", "-c", "ls /"};
                 ExecWatch execWatch = client.pods().inNamespace("default").withName(runningPod.getMetadata().getName())
                         .writingOutput(output)
                         .writingError(error)
