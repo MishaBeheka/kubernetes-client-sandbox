@@ -45,9 +45,10 @@ public class PodManager {
                     .withName("test-pod")
                     .endMetadata()
                     .withNewSpec()
+                    .withActiveDeadlineSeconds(600L)
                     .addNewContainer()
                     .withName("test-pod-container")
-                    .withImage("europe-west1-docker.pkg.dev/gcp-final-task-project/kubernetes-client-sandbox/sandbox-app:6fe4d86")
+                    .withImage("europe-west1-docker.pkg.dev/gcp-final-task-project/build-tools/maven-17:v.0.0")
                     .addNewPort()
                     .withContainerPort(8080)
                     .endPort()
@@ -79,7 +80,7 @@ public class PodManager {
                         .usingListener(new WatchListener())
                         .exec(command);
 
-                var exitCode = execWatch.exitCode().get();
+                var exitCode = execWatch.exitCode().get(); // Blocks until the Pod is executing
                 log.info("Exit code: {}", exitCode);
 
                 execWatch.close();
