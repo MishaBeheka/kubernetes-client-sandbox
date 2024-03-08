@@ -126,12 +126,18 @@ public class PodManager {
         Path outputPath = Paths.get("/reports/output.xml");
         Path errorPath = Paths.get("/reports/error.txt");
 
+        try {
+            Files.createDirectories(outputPath.getParent());
+        } catch (Exception e) {
+            log.error("Error occurred while creating directories", e);
+        }
+
         Config config = new ConfigBuilder().withAutoConfigure().build();
         try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build();
              OutputStream output = Files.newOutputStream(outputPath);
              OutputStream error = Files.newOutputStream(errorPath)
         ) {
-            Files.createDirectories(outputPath.getParent());
+
             String[] commandArray = {"/bin/sh", "-c", command}; //important
             try (ExecWatch execWatch = client.pods()
                     .inNamespace("default")
