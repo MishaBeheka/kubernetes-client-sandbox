@@ -34,4 +34,8 @@ public class PodController {
         return ResponseEntity.ok(podManager.executeCommandInPod(podName, command));
     }
 
+    @GetMapping ("/{podName}/logs")
+    public ResponseEntity<?> getPodLogs(@PathVariable String podName) {
+        return ResponseEntity.ok(podManager.getPodLogs(podName));
+    }
 }

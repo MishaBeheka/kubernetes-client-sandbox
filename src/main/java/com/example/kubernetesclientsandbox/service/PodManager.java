@@ -45,7 +45,7 @@ public class PodManager {
                     .withName(podName)
                     .endMetadata()
                     .withNewSpec()
-                    .withActiveDeadlineSeconds(600L)
+//                    .withActiveDeadlineSeconds(600L)
                     .addNewContainer()
                     .withName(podName + "-container")
                     .withImage("europe-west1-docker.pkg.dev/gcp-final-task-project/build-tools/maven-17:v.0.0")
@@ -68,30 +68,6 @@ public class PodManager {
 
             Pod runningPod = podRunningFuture.get(); // Blocks until the Pod is running
             System.out.println("Pod is running now! Name: " + runningPod.getMetadata().getName());
-
-//            //execute command in pod
-//            ByteArrayOutputStream output = new ByteArrayOutputStream();
-//            ByteArrayOutputStream error = new ByteArrayOutputStream();
-//            try {
-//                String[] command = {"/bin/sh", "-c", "ls /"};
-//                ExecWatch execWatch = client.pods().inNamespace("default").withName(runningPod.getMetadata().getName())
-//                        .writingOutput(output)
-//                        .writingError(error)
-//                        .usingListener(new WatchListener())
-//                        .exec(command);
-//
-//                var exitCode = execWatch.exitCode().get(); // Blocks until the Pod is executing
-//                log.info("Exit code: {}", exitCode);
-//
-//                execWatch.close();
-//                log.info("Output: {}", output);
-//                log.info("Error: {}", error);
-//            } catch (Exception e) {
-//                log.error("Error occurred while executing command in pod", e);
-//                throw e;
-//            }
-
-
             return runningPod.getMetadata().getName();
         } catch (KubernetesClientException | InterruptedException | ExecutionException e) {
             log.error("Error occurred while processing pod", e);
@@ -105,14 +81,14 @@ public class PodManager {
 
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             ByteArrayOutputStream error = new ByteArrayOutputStream();
-
+            String[] commandArray = {"/bin/sh", "-c", command}; //important
             try (ExecWatch execWatch = client.pods()
                     .inNamespace("default")
                     .withName(podName)
                     .writingOutput(output)
                     .writingError(error)
                     .usingListener(new WatchListener())
-                    .exec(command.split(" "))) {
+                    .exec(commandArray)) {
 
                 var exitCode = execWatch.exitCode().get(); // Blocks until the Pod is executing
                 log.info("Exit code: {}", exitCode);
@@ -128,6 +104,16 @@ public class PodManager {
                 log.error("Error occurred while executing command in pod", e);
                 return e.getMessage();
             }
+        }
+    }
+
+    public String getPodLogs(String podName) {
+        Config config = new ConfigBuilder().withAutoConfigure().build();
+        try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build()) {
+            return client.pods()
+                    .inNamespace("default")
+                    .withName(podName)
+                    .getLog();
         }
     }
 }
