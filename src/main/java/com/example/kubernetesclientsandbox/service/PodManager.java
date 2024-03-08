@@ -48,7 +48,7 @@ public class PodManager {
 //                    .withActiveDeadlineSeconds(600L)
                     .addNewContainer()
                     .withName(podName + "-container")
-                    .withImage("europe-west1-docker.pkg.dev/gcp-final-task-project/build-tools/maven-17:v.0.0")
+                    .withImage("europe-west1-docker.pkg.dev/gcp-final-task-project/build-tools/maven-17:v.0.1")
                     .addNewPort()
                     .withContainerPort(8080)
                     .endPort()
