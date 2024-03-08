@@ -13,6 +13,11 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -114,6 +119,35 @@ public class PodManager {
                     .inNamespace("default")
                     .withName(podName)
                     .getLog();
+        }
+    }
+
+    public void writeCommandExecutionToFile(String podName, String command) {
+        Path outputPath = Paths.get("/reports/output.xml");
+        Path errorPath = Paths.get("/reports/error.txt");
+
+        Config config = new ConfigBuilder().withAutoConfigure().build();
+        try (KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build();
+             OutputStream output = Files.newOutputStream(outputPath);
+             OutputStream error = Files.newOutputStream(errorPath)
+        ) {
+            Files.createDirectories(outputPath.getParent());
+            String[] commandArray = {"/bin/sh", "-c", command}; //important
+            try (ExecWatch execWatch = client.pods()
+                    .inNamespace("default")
+                    .withName(podName)
+                    .writingOutput(output)
+                    .writingError(error)
+                    .usingListener(new WatchListener())
+                    .exec(commandArray)) {
+
+                var exitCode = execWatch.exitCode().get(); // Blocks until the Pod is executing
+                log.info("Exit code: {}", exitCode);
+            } catch (KubernetesClientException | InterruptedException | ExecutionException e) {
+                log.error("Error occurred while executing command in pod", e);
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while writing output to file", e);
         }
     }
 }

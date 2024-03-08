@@ -25,17 +25,23 @@ public class PodController {
     }
 
     @PostMapping ("/create")
-    public ResponseEntity<?> createdPod(@RequestBody String podName) {
+    public ResponseEntity<?> executeCommand(@RequestBody String podName) {
         return ResponseEntity.ok(podManager.createPod(podName));
     }
 
     @PatchMapping ("/{podName}")
-    public ResponseEntity<?> createdPod(@PathVariable String podName, @RequestBody String command) {
+    public ResponseEntity<?> executeCommand(@PathVariable String podName, @RequestBody String command) {
         return ResponseEntity.ok(podManager.executeCommandInPod(podName, command));
     }
 
     @GetMapping ("/{podName}/logs")
     public ResponseEntity<?> getPodLogs(@PathVariable String podName) {
         return ResponseEntity.ok(podManager.getPodLogs(podName));
+    }
+
+    @PatchMapping("/{podName}/writeToFile")
+    public ResponseEntity<Void> writeCommandExecutionToFile(@PathVariable String podName, @RequestBody String command) {
+        podManager.writeCommandExecutionToFile(podName, command);
+        return ResponseEntity.noContent().build();
     }
 }
