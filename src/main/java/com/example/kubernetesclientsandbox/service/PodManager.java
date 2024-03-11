@@ -58,7 +58,6 @@ public class PodManager {
                     .withNewResources()
                     .addToRequests("cpu", new Quantity("300m"))
                     .addToRequests("memory", new Quantity("1Gi"))
-                    .addToLimits("cpu", new Quantity("1"))
                     .addToLimits("memory", new Quantity("1Gi"))
                     .endResources()
                     .addNewPort()
