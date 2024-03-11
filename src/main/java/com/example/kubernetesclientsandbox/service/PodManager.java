@@ -4,6 +4,7 @@ import com.example.kubernetesclientsandbox.dto.PodInfoDto;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -54,6 +55,12 @@ public class PodManager {
                     .addNewContainer()
                     .withName(podName + "-container")
                     .withImage("europe-west1-docker.pkg.dev/gcp-final-task-project/build-tools/maven-17:v.0.2")
+                    .withNewResources()
+                    .addToRequests("cpu", new Quantity("300m"))
+                    .addToRequests("memory", new Quantity("1Gi"))
+                    .addToLimits("cpu", new Quantity("1"))
+                    .addToLimits("memory", new Quantity("1Gi"))
+                    .endResources()
                     .addNewPort()
                     .withContainerPort(8080)
                     .endPort()
