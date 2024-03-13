@@ -69,18 +69,22 @@ public class PodManager {
 
             log.info("Creating pod: {} ", pod.getMetadata().getName());
             pod = client.pods().inNamespace("default").resource(pod).create();
-
-            CompletableFuture<Pod> podRunningFuture = new CompletableFuture<>();
-
-            client.pods()
+            Pod runningPod = client.pods()
                     .inNamespace("default")
-                    .withName(pod.getMetadata().getName())
-                    .watch(new PodWatcher(podRunningFuture));
+                    .resource(pod)
+                    .waitUntilCondition(p -> p.getStatus().getPhase().equals("Running"), 2, java.util.concurrent.TimeUnit.MINUTES);
 
-            Pod runningPod = podRunningFuture.get(); // Blocks until the Pod is running
+//            CompletableFuture<Pod> podRunningFuture = new CompletableFuture<>();
+//
+//            client.pods()
+//                    .inNamespace("default")
+//                    .withName(pod.getMetadata().getName())
+//                    .watch(new PodWatcher(podRunningFuture));
+//
+//            Pod runningPod = podRunningFuture.get(); // Blocks until the Pod is running
             System.out.println("Pod is running now! Name: " + runningPod.getMetadata().getName());
             return runningPod.getMetadata().getName();
-        } catch (KubernetesClientException | InterruptedException | ExecutionException e) {
+        } catch (KubernetesClientException e) {
             log.error("Error occurred while processing pod", e);
             return "Error occurred while processing pod";
         }
@@ -143,6 +147,7 @@ public class PodManager {
              OutputStream output = Files.newOutputStream(outputPath);
              OutputStream error = Files.newOutputStream(errorPath)
         ) {
+
 
             String[] commandArray = {"/bin/sh", "-c", command}; //important
             try (ExecWatch execWatch = client.pods()
